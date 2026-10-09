@@ -1,9 +1,7 @@
 plugins {
-    kotlin("jvm") version "2.4.20"
+    kotlin("jvm") version "1.9.21"
+    id("info.solidsoft.pitest") version "1.19.0"
 }
-
-group = "org.example"
-version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -12,10 +10,26 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+    pitest("org.pitest:pitest-junit5-plugin:1.2.1")
 }
 
-kotlin {
-    jvmToolchain(21)
+configure<info.solidsoft.gradle.pitest.PitestPluginExtension> {
+    targetClasses.set(setOf("tivpomodule.*", "model.*"))
+
+    targetTests.set(setOf("*Test", "*Tests"))
+
+    pitestVersion.set("1.19.0")
+
+    threads.set(4)
+
+    outputFormats.set(setOf("HTML", "XML"))
+    excludedClasses.set(setOf("model.TextHolder"))
+    excludedMethods.set(setOf(
+        "equals", "hashCode", "toString", "copy",
+        "component1", "component2", "component3", "component4", "component5", "component6", "component7",
+        "copy\$default"
+    ))
+    excludedClasses.set(setOf("kotlin.jvm.internal.*"))
 }
 
 tasks.test {

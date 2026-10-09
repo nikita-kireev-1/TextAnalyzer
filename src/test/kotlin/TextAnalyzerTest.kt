@@ -11,6 +11,18 @@ class TextAnalyzerTest {
     inner class LetterCounterTest {
 
         @Test
+        fun `boundary english letters z and Z are counted`() {
+            assertEquals(2, letterCounter("zZ"))
+            assertEquals(4, letterCounter("aAzZ"))
+        }
+
+        @Test
+        fun `boundary russian letters ya and YA are counted`() {
+            assertEquals(2, letterCounter("яЯ"))
+            assertEquals(4, letterCounter("аАяЯ"))
+        }
+
+        @Test
         fun `empty string returns 0 letters`() {
             assertEquals(0, letterCounter(""))
         }
@@ -47,11 +59,23 @@ class TextAnalyzerTest {
         fun `digits and punctuation are not counted`() {
             assertEquals(10, letterCounter("Hello, World! 123"))
         }
+
+        @Test
+        fun `only letter yo is counted correctly`() {
+            assertEquals(2, letterCounter("ёЁ"))
+            assertEquals(1, letterCounter("ё"))
+        }
     }
 
     @Nested
     @DisplayName("wordCounter - word counting")
     inner class WordCounterTest {
+
+        @Test
+        fun `words starting or ending with boundary letters are counted`() {
+            assertEquals(2, wordCounter("zя zЯ"))
+            assertEquals(2, wordCounter("Zz Яя"))
+        }
 
         @Test
         fun `empty string returns 0 words`() {
@@ -114,6 +138,17 @@ class TextAnalyzerTest {
     inner class InterpretTextToWordsTest {
 
         @Test
+        fun `single word without trailing punctuation is not lost`() {
+            assertEquals(listOf("привет"), InterpretTextToWords("привет"))
+            assertEquals(listOf("кот", "спит"), InterpretTextToWords("кот спит")) // Без точки в конце!
+        }
+
+        @Test
+        fun `text with only letter yo`() {
+            assertEquals(listOf("ё"), InterpretTextToWords("ё"))
+        }
+
+        @Test
         fun `empty string returns empty list`() {
             assertTrue(InterpretTextToWords("").isEmpty())
         }
@@ -139,6 +174,21 @@ class TextAnalyzerTest {
                 listOf("кот", "спит", "пёс", "лает"),
                 InterpretTextToWords("Кот спит. Пёс лает!")
             )
+        }
+
+        @Test
+        fun `strictly verifies list is populated`() {
+            val result = InterpretTextToWords("кот спит")
+            assertEquals(2, result.size, "List size must be 2 if words.add() works")
+            assertEquals("кот", result[0])
+            assertEquals("спит", result[1])
+        }
+
+        @Test
+        fun `words with boundary letters are split correctly`() {
+            assertEquals(listOf("zя", "zя"), InterpretTextToWords("zя ZЯ"))
+            assertEquals(listOf("a", "z"), InterpretTextToWords("a z"))
+            assertEquals(listOf("а", "я"), InterpretTextToWords("а я"))
         }
 
         @Test
@@ -192,11 +242,38 @@ class TextAnalyzerTest {
             assertEquals(1, result.size)
             assertEquals(4, result["a"])
         }
+
+        @Test
+        fun `interleaved repeating words force both if and else branches`() {
+            val result = wordFrequencyCounter(listOf("a", "b", "a", "c", "a"))
+            assertEquals(3, result.size)
+            assertEquals(3, result["a"])
+            assertEquals(1, result["b"])
+            assertEquals(1, result["c"])
+        }
+
+        @Test
+        fun `strictly verifies map is populated`() {
+            val result = wordFrequencyCounter(listOf("a", "b", "a"))
+            assertEquals(2, result.size, "Map size must be 2 if result[i] = ... works")
+            assertEquals(2, result["a"])
+            assertEquals(1, result["b"])
+        }
     }
 
     @Nested
     @DisplayName("symbolFrequencyCounter - symbol frequency")
     inner class SymbolFrequencyCounterTest {
+
+        @Test
+        fun `interleaved repeating characters force map updates`() {
+            val result = symbolFrequencyCounter("a b a c a")
+            assertEquals(4, result.size)
+            assertEquals(3, result['a'])
+            assertEquals(4, result[' '])
+            assertEquals(1, result['b'])
+            assertEquals(1, result['c'])
+        }
 
         @Test
         fun `empty string returns empty map`() {
@@ -232,6 +309,14 @@ class TextAnalyzerTest {
             assertEquals(2, result.size)
             assertEquals(1, result['a'])
             assertEquals(1, result['A'])
+        }
+
+        @Test
+        fun `strictly verifies symbol map is populated`() {
+            val result = symbolFrequencyCounter("x y x")
+            assertEquals(3, result.size, "Map size must be 3 if result[i] = ... works")
+            assertEquals(2, result['x'])
+            assertEquals(2, result[' '])
         }
     }
 }
