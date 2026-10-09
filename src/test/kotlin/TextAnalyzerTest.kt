@@ -40,6 +40,12 @@ class TextAnalyzerTest {
         }
 
         @Test
+        fun `characters outside supported letter ranges are ignored`() {
+            assertEquals(0, letterCounter("1234567890 !?,."))
+            assertEquals(0, letterCounter("éñø"))
+        }
+
+        @Test
         fun `russian letters`() {
             assertEquals(3, letterCounter("абв"))
             assertEquals(3, letterCounter("АБВ"))
@@ -111,6 +117,21 @@ class TextAnalyzerTest {
         fun `mixed russian and english`() {
             assertEquals(4, wordCounter("Кот спит. Dog runs."))
         }
+
+        @Test
+        fun `leading and trailing spaces do not create extra words`() {
+            assertEquals(2, wordCounter("   кот спит   "))
+        }
+
+        @Test
+        fun `newlines and tabs separate words`() {
+            assertEquals(3, wordCounter("кот\nспит\tдома"))
+        }
+
+        @Test
+        fun `punctuation only returns zero words`() {
+            assertEquals(0, wordCounter("... !!! ,,,"))
+        }
     }
 
     @Nested
@@ -174,6 +195,27 @@ class TextAnalyzerTest {
                 listOf("кот", "спит", "пёс", "лает"),
                 InterpretTextToWords("Кот спит. Пёс лает!")
             )
+        }
+
+        @Test
+        fun `leading and trailing delimiters are ignored`() {
+            assertEquals(
+                listOf("кот", "спит"),
+                InterpretTextToWords("  кот,,, спит   ")
+            )
+        }
+
+        @Test
+        fun `uppercase russian yo is normalized`() {
+            assertEquals(
+                listOf("ёж", "ёлка"),
+                InterpretTextToWords("ЁЖ ЁЛКА")
+            )
+        }
+
+        @Test
+        fun `punctuation only returns empty list`() {
+            assertTrue(InterpretTextToWords("... !!! ,,,").isEmpty())
         }
 
         @Test
@@ -259,6 +301,19 @@ class TextAnalyzerTest {
             assertEquals(2, result["a"])
             assertEquals(1, result["b"])
         }
+
+        @Test
+        fun `frequency is incremented independently for each word`() {
+            val result = wordFrequencyCounter(
+                listOf("a", "b", "a", "b", "a", "c")
+            )
+
+            assertEquals(
+                mapOf("a" to 3, "b" to 2, "c" to 1),
+                result
+            )
+        }
+
     }
 
     @Nested

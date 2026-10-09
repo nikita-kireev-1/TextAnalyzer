@@ -14,22 +14,40 @@ dependencies {
 }
 
 configure<info.solidsoft.gradle.pitest.PitestPluginExtension> {
-    targetClasses.set(setOf("tivpomodule.*", "model.*"))
-
+    targetClasses.set(setOf("tivpomodule.*"))
     targetTests.set(setOf("*Test", "*Tests"))
 
     pitestVersion.set("1.19.0")
-
     threads.set(4)
 
     outputFormats.set(setOf("HTML", "XML"))
-    excludedClasses.set(setOf("model.TextHolder"))
-    excludedMethods.set(setOf(
-        "equals", "hashCode", "toString", "copy",
-        "component1", "component2", "component3", "component4", "component5", "component6", "component7",
-        "copy\$default"
-    ))
-    excludedClasses.set(setOf("kotlin.jvm.internal.*"))
+
+    excludedClasses.set(
+        setOf(
+            "model.TextHolder",
+            "kotlin.jvm.internal.*"
+        )
+    )
+
+    excludedMethods.set(
+        setOf(
+            "equals",
+            "hashCode",
+            "toString",
+            "copy",
+            "component1",
+            "component2",
+            "component3",
+            "component4",
+            "component5",
+            "component6",
+            "component7",
+            "copy\$default"
+        )
+    )
+    avoidCallsTo.set(
+        setOf("kotlin.jvm.internal.Intrinsics")
+    )
 }
 
 tasks.test {
